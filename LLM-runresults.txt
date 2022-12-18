@@ -1,0 +1,30 @@
+# char level, text8
+
+embedding 128
+depth 6
+heads 4
+
+epoch 9 loss 1.5079911947250366: at alignous of subsed joe known with mounts written on ecloss septed to to under thinkan parket to t
+
+
+
+embedding 128
+depth 10
+heads 4
+
+
+epoch 9 loss 1.4994598627090454: e presised from of harneford and historyn see aways seudo in wheatern fan all aimed to the nine sebv
+epoch 100 loss 1.206655312180519: at in the field preortables in one nine five eight two address the same estimated western ecocheries
+epoch 120 loss 1.1925744526386262: e commons haded the revolution consisting cossile the enemy primis in things and movie person down i
+
+
+
+# word level, wikitext2
+
+embed_size = 512
+depth = 6
+heads = 8
+max_length = 256
+batch_size = 64
+
+epoch 999 loss 3.068271328852727:  the player to include fellow Sinclair code , the script and the
