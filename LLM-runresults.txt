@@ -28,3 +28,5 @@ max_length = 256
 batch_size = 64
 
 epoch 999 loss 3.068271328852727:  the player to include fellow Sinclair code , the script and the
+
+epoch 1999 loss 1.1581102875562814:  fresh out of the game 's year , stating that Valkyria Chronicles
