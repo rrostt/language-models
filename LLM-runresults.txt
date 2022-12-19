@@ -26,7 +26,29 @@ depth = 6
 heads = 8
 max_length = 256
 batch_size = 64
+lr = 1e-5
 
 epoch 999 loss 3.068271328852727:  the player to include fellow Sinclair code , the script and the
 
 epoch 1999 loss 1.1581102875562814:  fresh out of the game 's year , stating that Valkyria Chronicles
+
+
+Example output after training:
+It met with positive sales in Japan , and was praised by both Japanese and western critics . After release , it received 690 – a first version of eighteenth @-@ century series . The game also features a version of the second season with a half stars ; it withdrew from a " counter @-@ hearted nonsense " <unk> . The game is centered on the series which originally played on prominent called The <unk> . After the series , " The Secret " was released on November 22 , 1999 , with an official episode that also " The <unk> of All @-@ Star " The Star Power Crystal " , and was available to make a more new episodes . The May 2007 edition was released as the second single from the November 7 , which was released on November 8 , 2010 . The single , which peaked at the end of the same season , was celebrated with the iTunes Store on 13 October 2002 . 
+
+
+embed_size = 512
+depth = 12
+heads = 8
+max_length = 256
+batch_size = 64
+lr = 1e-5
+
+epoch 680 loss 4.1504936695098875:  decreased singers , and the film recommended at games to the stories
+
+Sample output:
+The Amps <unk> ( The Goat ) is impersonating broadcast for his poorly episode change that has almost been delaying , either complete . <unk> is four Kick and information for Toei chrome stars and 5 inches ( 4 @.@ 1 @.@ 4 in Fulton 's Road but from all time of 2004 . A Primetime season in a Bormanis , the Secret needed potentially also IAU and made the film was performance . 
+ 
+ The designers in shortly ( Richard Fleming 's special distributor Belt Guide game of Development ( substance <unk> ) , comic from 15 on 6 @.@ Mike 360 in a beta panel . 
+
+ 
