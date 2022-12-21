@@ -2,6 +2,7 @@
 
 import torch
 import torch.nn as nn
+import glob
 
 from torchtext.datasets import WikiText2, WikiText103
 data = WikiText2(root='data', split='train')
@@ -150,6 +151,30 @@ class WarmupScheduler(torch.optim.lr_scheduler._LRScheduler):
     self._step += 1
     return [self.embed_size ** -0.5 * min(self._step ** -0.5, self._step * self.warmup_steps ** -1.5) for group in self.optimizer.param_groups]
 
+def save_checkpoint(filename, model, optim, loss, epoch):
+  torch.save({'optimizer': optim.state_dict(), 'model': model.state_dict(), 'loss': loss, 'epoch': epoch}, filename)
+
+def load_checkpoint(filename, model, optim):
+  checkpoint = torch.load(filename)
+  model.load_state_dict(checkpoint['model'])
+  optim.load_state_dict(checkpoint['optimizer'])
+  loss = checkpoint['loss']
+  epoch = checkpoint['epoch']
+  return model, optim, loss, epoch
+
+def save_latest(model, optim, loss, epoch):
+  save_checkpoint(f'ckpt/e-{epoch}.pt', model, optim, loss, epoch)
+
+def load_latest(model, optim):
+  files = glob.glob('ckpt/*.pt')
+  files.sort()
+  if len(files) > 0:
+    model, optim, loss, epoch = load_checkpoint(files[-1], model, optim)
+    print(f"Loaded checkpoint {files[-1]}")
+    return model, optim, loss, epoch
+  else:
+    return model, optim, 0, -1
+
 vocab_size = len(vocab)
 embed_size = 512
 depth = 12
@@ -162,7 +187,7 @@ model_size = sum(p.numel() for p in model.parameters() if p.requires_grad)
 print(f"Model size: {model_size / 1e6}M")
 
 optim = torch.optim.Adam(model.parameters(), lr=1e-5)
-scheduler = WarmupScheduler(optim, embed_size, 4000)
+# scheduler = WarmupScheduler(optim, embed_size, 4000)
 loss_fn = torch.nn.CrossEntropyLoss()
 
 def generate(model, encoded_prompt, length):
@@ -176,11 +201,11 @@ def generate(model, encoded_prompt, length):
       x = torch.cat([x, y], dim=1)
   return ' '.join([vocab[i] for i in x[0]]), ' '.join([vocab[i] for i in encoded_prompt])
 
-def train(model, optim, loss_fn, data, epochs=10, device="cpu"):
+def train(model, optim, loss_fn, data, epochs=10, device="cpu", start_epoch=0):
   model.to(device)
   print(len(data))
   lossi = []
-  for epoch in range(epochs):
+  for epoch in range(start_epoch, start_epoch + epochs):
     for i in range((len(data) // max_length // batch_size) + 1):
       ix = torch.randint(0, len(data) - max_length - 1, (batch_size,)) if len(data) != max_length * batch_size + 1 else torch.zeros((batch_size,), dtype=torch.int64)
       x = torch.tensor([data[i:i + max_length] for i in ix]).to(device)
@@ -193,12 +218,15 @@ def train(model, optim, loss_fn, data, epochs=10, device="cpu"):
       optim.zero_grad()
       loss.backward()
       optim.step()
-      scheduler.step()
+      # scheduler.step()
       # if len(lossi)%100 == 0:
       #   print(f"epoch {epoch} i {i} loss {sum(lossi)/len(lossi)}")
     output, input = generate(model, data[:max_length], 12)
     output = output[len(input):]
     print(f"epoch {epoch} loss {sum(lossi)/len(lossi)}: {output}")
+    save_latest(model, optim, sum(lossi)/len(lossi), epoch)
     lossi = []
 
-train(model, optim, loss_fn, encoded, epochs=2000, device="cuda")
+model, optim, loss, last_epoch = load_latest(model, optim)
+
+train(model, optim, loss_fn, encoded, epochs=2000, device="cuda", start_epoch=last_epoch + 1)
