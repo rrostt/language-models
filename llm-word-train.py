@@ -6,7 +6,7 @@ import glob
 
 from torchtext.datasets import WikiText2, WikiText103
 data = WikiText2(root='data', split='train')
-loader = torch.utils.data.DataLoader(data, drop_last=True)
+# loader = torch.utils.data.DataLoader(data, drop_last=True)
 
 words = []
 for i, text in enumerate(data):
