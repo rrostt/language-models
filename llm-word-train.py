@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import glob
 import os
+import datetime
 
 from torchtext.datasets import WikiText2, WikiText103
 data = WikiText2(root='data', split='train')
@@ -15,8 +16,25 @@ for i, text in enumerate(data):
     if len(line) > 0:
         words += list(filter(len, line.split(' '))) + ['\n']
 
-# get unique characters in string text
-vocab = tuple(set(words))
+# load vocab from file if it exists
+# otherwise create vocab from words
+# and save
+vocab = []
+if os.path.exists('vocab.txt'):
+    with open('vocab.txt', 'r') as f:
+        for i, line in enumerate(f):
+            vocab.append(line.strip() if line != '\n' else '\n')
+else:
+  # create vocab from words
+  print('creating vocabulary...')
+  for i, word in enumerate(words):
+      if word not in vocab:
+          vocab.append(word)
+  # save vocab to file
+  with open('vocab.txt', 'w') as f:
+      for word in vocab:
+          f.write((word if word != '\n' else '') + '\n')
+
 int2char = dict(enumerate(vocab))
 char2int = {ch: ii for ii, ch in int2char.items()}
 
@@ -176,6 +194,8 @@ def load_latest(model, optim):
   else:
     return model, optim, 0, -1
 
+device = torch.device('cuda')
+
 vocab_size = len(vocab)
 embed_size = 512
 depth = 12
@@ -187,14 +207,13 @@ model = LLM(vocab_size, embed_size, depth, heads, max_length)
 model_size = sum(p.numel() for p in model.parameters() if p.requires_grad)
 print(f"Model size: {model_size / 1e6}M")
 
-model.to('cuda')
+model.to(device)
 optim = torch.optim.Adam(model.parameters(), lr=1e-5)
 # scheduler = WarmupScheduler(optim, embed_size, 4000)
 loss_fn = torch.nn.CrossEntropyLoss()
 
 def generate(model, encoded_prompt, length):
-#  model.eval()
-  x = torch.tensor(encoded_prompt).unsqueeze(0).to('cuda')
+  x = torch.tensor(encoded_prompt).unsqueeze(0).to(device)
   with torch.no_grad():
     for i in range(length):
       y = model(x[0, -max_length:])
@@ -204,7 +223,6 @@ def generate(model, encoded_prompt, length):
   return ' '.join([vocab[i] for i in x[0]]), ' '.join([vocab[i] for i in encoded_prompt])
 
 def train(model, optim, loss_fn, data, epochs=10, device="cpu", start_epoch=0):
-  model.to(device)
   print(len(data))
   lossi = []
   for epoch in range(start_epoch, start_epoch + epochs):
@@ -219,18 +237,24 @@ def train(model, optim, loss_fn, data, epochs=10, device="cpu", start_epoch=0):
       lossi.append(loss.item())
       optim.zero_grad()
       loss.backward()
+      torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
       optim.step()
       # scheduler.step()
       # if len(lossi)%100 == 0:
       #   print(f"epoch {epoch} i {i} loss {sum(lossi)/len(lossi)}")
     output, input = generate(model, data[:max_length], 12)
     output = output[len(input):]
-    print(f"epoch {epoch} loss {sum(lossi)/len(lossi)}: {output}")
-    save_latest(model, optim, sum(lossi)/len(lossi), epoch)
+    epoch_loss = sum(lossi)/len(lossi)
+    # print timestamp
+    ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"{ts} epoch {epoch} loss {epoch_loss}: {output}")
+    save_latest(model, optim, epoch_loss, epoch)
     lossi = []
 
+last_epoch = -1
 model, optim, loss, last_epoch = load_latest(model, optim)
-model.to("cuda")
-model.train()
 
-train(model, optim, loss_fn, encoded, epochs=2000, device="cuda", start_epoch=last_epoch + 1)
+if loss > 0:
+  print(f'Previous loss {loss}')
+
+train(model, optim, loss_fn, encoded, epochs=3000, device=device, start_epoch=last_epoch + 1)
