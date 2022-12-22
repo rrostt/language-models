@@ -3,6 +3,7 @@
 import torch
 import torch.nn as nn
 import glob
+import os
 
 from torchtext.datasets import WikiText2, WikiText103
 data = WikiText2(root='data', split='train')
@@ -161,7 +162,7 @@ def load_checkpoint(filename, model, optim):
 
 def load_latest(model, optim):
   files = glob.glob('ckpt/*.pt')
-  files.sort()
+  files.sort(key=os.path.getmtime)
   if len(files) > 0:
     model, optim, loss, epoch = load_checkpoint(files[-1], model, optim)
     print(f"Loaded checkpoint {files[-1]}")
