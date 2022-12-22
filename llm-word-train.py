@@ -186,6 +186,7 @@ model = LLM(vocab_size, embed_size, depth, heads, max_length)
 model_size = sum(p.numel() for p in model.parameters() if p.requires_grad)
 print(f"Model size: {model_size / 1e6}M")
 
+model.to('cuda')
 optim = torch.optim.Adam(model.parameters(), lr=1e-5)
 # scheduler = WarmupScheduler(optim, embed_size, 4000)
 loss_fn = torch.nn.CrossEntropyLoss()
