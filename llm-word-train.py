@@ -247,7 +247,7 @@ def train(model, optim, loss_fn, data, epochs=10, device="cpu", start_epoch=0):
     epoch_loss = sum(lossi)/len(lossi)
     # print timestamp
     ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"{ts} epoch {epoch} loss {epoch_loss}: {output}")
+    print(f"{ts} epoch {epoch} loss {epoch_loss}: {output}", flush=True)
     save_latest(model, optim, epoch_loss, epoch)
     lossi = []
 
