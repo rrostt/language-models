@@ -229,6 +229,7 @@ def train(model, optim, loss_fn, data, epochs=10, device="cpu", start_epoch=0):
     lossi = []
 
 model, optim, loss, last_epoch = load_latest(model, optim)
+model.to("cuda")
 model.train()
 
 train(model, optim, loss_fn, encoded, epochs=2000, device="cuda", start_epoch=last_epoch + 1)
