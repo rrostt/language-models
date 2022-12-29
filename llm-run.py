@@ -65,21 +65,6 @@ class WordTokenizer:
   def decode(self, tokens):
     return ' '.join([self.int2char[i] for i in tokens])
 
-dataset = 'wikitext103'
-
-data = WikiText103(root='data', split='train') if dataset == 'wikitext103' else WikiText2(root='data', split='train')
-
-words = []
-for i, text in enumerate(data):
-    line = text.replace('  ', ' ')
-    if len(line) > 0:
-        words += list(filter(len, line.split(' '))) + ['\n']
-
-# wikitext103
-tokenizer = GPT2Tokenizer.from_pretrained('gpt2') if dataset == 'wikitext103' else WordTokenizer(words)
-
-encoded = tokenizer.encode(' '.join(words))
-
 def save_checkpoint(filename, model, optim, loss, epoch):
   torch.save({'optimizer': optim.state_dict(), 'model': model.state_dict(), 'loss': loss, 'epoch': epoch}, filename)
 
@@ -148,6 +133,19 @@ def train(model, optim, loss_fn, data, epochs=10, device="cpu", start_epoch=0):
     # print timestamp
     ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"{ts} epoch {epoch} \n\n{output}\n\n", flush=True)
+
+
+dataset = 'wikitext103'
+data = WikiText103(root='data', split='train') if dataset == 'wikitext103' else WikiText2(root='data', split='train')
+
+words = []
+for i, text in enumerate(data):
+    line = text.replace('  ', ' ')
+    if len(line) > 0:
+        words += list(filter(len, line.split(' '))) + ['\n']
+
+tokenizer = GPT2Tokenizer.from_pretrained('gpt2') if dataset == 'wikitext103' else WordTokenizer(words)
+encoded = tokenizer.encode(' '.join(words))
 
 device = torch.device('cuda')
 
