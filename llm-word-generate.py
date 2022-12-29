@@ -15,8 +15,25 @@ for i, text in enumerate(data):
     if len(line) > 0:
         words += list(filter(len, line.split(' '))) + ['\n']
 
-# get unique characters in string text
-vocab = tuple(set(words))
+# load vocab from file if it exists
+# otherwise create vocab from words
+# and save
+vocab = []
+if os.path.exists('vocab.txt'):
+    with open('vocab.txt', 'r') as f:
+        for i, line in enumerate(f):
+            vocab.append(line.strip() if line != '\n' else '\n')
+else:
+  # create vocab from words
+  print('creating vocabulary...')
+  for i, word in enumerate(words):
+      if word not in vocab:
+          vocab.append(word)
+  # save vocab to file
+  with open('vocab.txt', 'w') as f:
+      for word in vocab:
+          f.write((word if word != '\n' else '') + '\n')
+
 int2char = dict(enumerate(vocab))
 char2int = {ch: ii for ii, ch in int2char.items()}
 
